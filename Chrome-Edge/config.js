@@ -125,8 +125,6 @@ CONFIG.SELECTORS = {
  * @const {Object}
  */
 CONFIG.MESSAGE_TYPES = {
-  /** Message sent from popup to background to toggle cache bypass */
-  TOGGLE_NOCACHE: "TOGGLE_NOCACHE"
 };
 
 /**
