@@ -237,10 +237,10 @@ addCopyToClipboard(fieldsCountElement);
  */
 document.getElementById("report-feedback").addEventListener("click", (e) => {
   e.preventDefault();
-  chrome.tabs.create({ url: "https://pattens.tech/contact" });
+  chrome.tabs.create({ url: "https://mylokaye.info" });
 });
 
 document.getElementById("get-support").addEventListener("click", (e) => {
   e.preventDefault();
-  chrome.tabs.create({ url: "https://pattens.tech/dynamics-365-form-debugger" });
+  chrome.tabs.create({ url: "https://mylokaye.info" });
 });
