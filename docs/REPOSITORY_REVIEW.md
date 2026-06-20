@@ -6,7 +6,7 @@ Reviewed on 20 June 2026. This document describes the repository as found; it is
 
 The repository contains a small, readable, dependency-free Manifest V3 extension for Chrome and Edge. Its source is directly loadable from `Chrome-Edge/`; there is no compilation or packaging step. The implementation is split sensibly between a service worker, a content script, a popup, and shared constants.
 
-The best next step is to clarify and test the extension's state model before adding features. The popup presents a single activation switch, but the cache-bypass worker reads a different setting that the current UI never changes. Form detection and permissions also need a deliberate product decision because the extension supports forms embedded on arbitrary sites while its background URL handling is limited to Dynamics asset pages.
+The extension now has a deliberately simple state model: cache bypass is always active on supported Dynamics asset URLs, with no activation control or persisted preference. Form detection and permissions still need deliberate review because the extension supports forms embedded on arbitrary sites while its background URL handling is limited to Dynamics asset pages.
 
 ## Current Structure
 
@@ -40,7 +40,7 @@ The manifest uses version `1.0.1`; the README still says `1.0.0`. The declared a
 `Chrome-Edge/manifest.json` declares:
 
 - Manifest V3.
-- `storage` and `activeTab` permissions.
+- The `activeTab` permission.
 - `*://*.dynamics.com/*` host permission.
 - A classic background service worker at `background.js`.
 - A popup action at `popup.html`.
@@ -50,7 +50,7 @@ Although `host_permissions` is limited to Dynamics domains, the `<all_urls>` con
 
 ### Shared Configuration
 
-`config.js` defines the global `CONFIG` object. It contains DOM IDs, timeouts, colors, logging strings, the Dynamics asset URL pattern, the no-cache hash, storage keys, selectors, defaults, and an empty `MESSAGE_TYPES` object.
+`config.js` defines the global `CONFIG` object. It contains DOM IDs, timeouts, colors, logging strings, the Dynamics asset URL pattern, the no-cache hash, selectors, and an empty `MESSAGE_TYPES` object.
 
 Several values are remnants of a removed in-page overlay (`STYLE`, `OVERLAY`, `OVERLAY_Z_INDEX`, and related IDs). The CommonJS export branch is not used by the extension. The message type used at runtime is currently a literal instead of a shared constant.
 
@@ -62,9 +62,9 @@ Several values are remnants of a removed in-page overlay (`STYLE`, `OVERLAY`, `O
 ^https://assets-[a-z]{3}.mkt.dynamics.com/
 ```
 
-For a matching URL, it reads `nocacheEnabled` from local storage. The default is `true`. It appends `#d365mkt-nocache` when enabled and removes that exact substring when disabled, calling `chrome.tabs.update` only when the string changes.
+For a matching URL, it appends `#d365mkt-nocache` when the hash is not already present. There is no activation preference or storage read.
 
-Storage and tab-update callback errors are handled. The service worker does not read `extensionEnabled`.
+Tab-update callback errors are handled.
 
 ### Content Script
 
@@ -84,11 +84,8 @@ It does not transmit detected data. Detection can succeed when the popup asks la
 
 `popup.html` contains all popup markup and CSS. `popup.js`:
 
-- Reads `nocacheEnabled` and `extensionEnabled` from local storage.
 - Queries the active tab and requests form information from its content script.
-- Shows form ID, direct-child count, form detection status, and cache status.
-- Writes `extensionEnabled` when the activation switch changes.
-- Automatically writes `extensionEnabled: false` when no form response is received or no form is detected.
+- Shows form ID, direct-child count, form detection status, and the always-active cache-bypass status.
 - Copies form ID or count to the clipboard.
 - Opens feedback and support pages on `pattens.tech`.
 
@@ -96,28 +93,21 @@ The HTML link destinations point to `mylokaye.info`, but click handlers prevent 
 
 ## State Model Found
 
-| State | Default | Read by | Written by | Effect |
-|---|---:|---|---|---|
-| `nocacheEnabled` | `true` | popup, background | No current runtime UI | Controls background hash changes and popup cache label |
-| `extensionEnabled` | `true` | popup | popup | Controls popup styling and switch position only |
-
-This is the highest-priority product issue. Switching off “Activate extension” does not stop `background.js` from applying the no-cache hash. Conversely, the cache state is display-only and cannot currently be changed by the user. Decide whether one switch should control both concepts or whether two explicit controls are required.
+The extension has no persisted activation state. The background worker always applies cache bypass to supported Dynamics asset URLs, and the popup exposes no activation control. This avoids stale preferences and removes the need for the `storage` permission.
 
 ## Findings and Risks
 
 ### High priority
 
-1. **Activation and cache bypass are disconnected.** The service worker ignores `extensionEnabled`; the popup never writes `nocacheEnabled`. The UI can therefore say the extension is inactive while background behavior remains active.
-2. **The field count is not necessarily a field count.** `formContainer.children.length` counts direct child elements, not form controls or hidden inputs specifically. The README and popup label make a stronger claim than the implementation supports.
-3. **Late-inserted forms are not mutation-monitored.** The observer attaches only if a form exists at the single DOM-ready check. Popup-time rescanning finds a later form but does not establish ongoing monitoring.
+1. **The field count is not necessarily a field count.** `formContainer.children.length` counts direct child elements, not form controls or hidden inputs specifically. The README and popup label make a stronger claim than the implementation supports.
+2. **Late-inserted forms are not mutation-monitored.** The observer attaches only if a form exists at the single DOM-ready check. Popup-time rescanning finds a later form but does not establish ongoing monitoring.
 
 ### Medium priority
 
-1. **No-form and unavailable-content-script states are conflated.** A restricted URL, injection failure, or extension-update mismatch auto-disables the extension as though a normal page had no form.
+1. **No-form and unavailable-content-script states are conflated.** A restricted URL, injection failure, or extension-update mismatch is displayed as though a normal page had no form.
 2. **Broad page access needs confirmation.** `<all_urls>` supports embedded forms on arbitrary sites, but it is a substantial permission surface. Confirm whether optional host access, user-triggered injection, or narrower matching can preserve the intended flow.
 3. **Hash handling is string-based.** Appending the bypass hash to a URL that already has another fragment creates a concatenated fragment. Removing the substring can also leave an unintended fragment. Use the `URL` API once desired behavior for existing hashes is specified.
 4. **The URL pattern is narrow.** It permits exactly three letters after `assets-`. Confirm all current Dynamics regional asset host formats before relying on it.
-5. **Auto-disable is persistent and surprising.** Merely opening the popup on an unsupported page changes stored state. A transient observation becomes a durable preference.
 
 ### Maintenance and documentation
 
@@ -128,7 +118,7 @@ This is the highest-priority product issue. Switching off “Activate extension�
 5. `CONFIG.MESSAGE_TYPES` is empty while `GET_FORM_INFO` is hard-coded.
 6. Overlay-era constants and comments remain after overlay removal.
 7. The message listener returns `true` after responding synchronously.
-8. Some Chrome API error paths are missing, including tab query/create and storage reads inside auto-disable and toggle flows.
+8. Some Chrome API error paths are missing, including tab query/create flows.
 9. Popup state is represented by direct inline style changes rather than state classes.
 10. There is no automated validation, test suite, linting, or release packaging script.
 11. `.gitignore` ignores common package-manager lockfiles. If Node tooling is introduced, its chosen lockfile should be committed for reproducibility.
@@ -139,7 +129,7 @@ This is the highest-priority product issue. Switching off “Activate extension�
 - Manifest V3 is already in use.
 - Shared constants reduce duplicated storage keys, selectors, defaults, and URL patterns.
 - The service worker registers its listener at top level and does not depend on durable in-memory state.
-- Storage reads preserve explicit `false` values through nullish fallback.
+- The always-active design requires no persisted preference or storage permission.
 - The background worker avoids a tab update when the URL does not change.
 - The extension has no third-party runtime dependencies, remote code, analytics, or telemetry.
 - Popup scripts are external files, consistent with extension CSP requirements.
@@ -148,14 +138,12 @@ This is the highest-priority product issue. Switching off “Activate extension�
 
 ## Recommended Development Order
 
-1. **Define behavior.** Decide the meaning of “Activate extension,” whether cache bypass is independently controllable, and what should happen when no form is present.
-2. **Correct the state flow.** Establish one documented source of truth or two clearly named settings; migrate existing stored values safely.
-3. **Define detection semantics.** Specify supported embed patterns and an exact definition of a detected field.
-4. **Add minimal automated checks.** Start with manifest parsing, JavaScript syntax checks, URL/hash unit tests, and pure form-state helpers. Introduce tooling only after choosing it deliberately.
-5. **Harden dynamic detection.** Handle late iframe/container insertion and observer cleanup without continuous broad DOM scans.
-6. **Review permissions.** Verify current APIs and the narrowest workable access model against current Chrome documentation.
-7. **Refine the popup.** Separate unavailable/error/empty states, align link destinations, use CSS state classes, and improve keyboard/status accessibility.
-8. **Align documentation and release data.** Update permissions, privacy language, version, changelog, and support links together.
+1. **Define detection semantics.** Specify supported embed patterns and an exact definition of a detected field.
+2. **Add minimal automated checks.** Start with manifest parsing, JavaScript syntax checks, URL/hash unit tests, and pure form-state helpers. Introduce tooling only after choosing it deliberately.
+3. **Harden dynamic detection.** Handle late iframe/container insertion and observer cleanup without continuous broad DOM scans.
+4. **Review permissions.** Verify current APIs and the narrowest workable access model against current Chrome documentation.
+5. **Refine the popup.** Separate unavailable/error/empty states and continue improving keyboard/status accessibility.
+6. **Align documentation and release data.** Update permissions, privacy language, version, changelog, and support links together.
 
 ## Suggested Future Structure
 

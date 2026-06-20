@@ -27,9 +27,8 @@ Everything runs **locally** — no data is collected, transmitted, or shared.
 - ✅ **Instant form detection** - Automatically detects Dynamics 365 forms on the page
 - 📋 **View form details** - See Form ID and field count (including hidden fields)
 - 🔄 **Automatic cache bypass** using `#d365mkt-nocache`
-- ⚙️ **Toggle on/off** from the browser toolbar
+- ⚡ **Always active** - Cache bypass is applied automatically on supported Dynamics form URLs
 - 📋 **Click to copy** - Click any form detail to copy it to clipboard
-- ⚡ **Smart auto-disable** - Extension automatically turns off when no form is detected
 - 🎨 **Visual feedback** - Info fields turn grey when extension is inactive
 - 🔒 **100% client-side** — no tracking, telemetry, or network calls
 
@@ -41,7 +40,7 @@ Everything runs **locally** — no data is collected, transmitted, or shared.
 1. Install the extension from the links above.
 2. Open a Dynamics 365 form page, such as: `https://assets-*.mkt.dynamics.com/...`
 3. Click the **Dynamics 365 Form Debugger** icon in your browser toolbar.
-4. Toggle **"Activate extension"** to enable cache bypass.
+4. Cache bypass is applied automatically; no activation step is required.
 5. View form details: Form ID, field count, detection status, and cache status.
 6. Click any value to copy it to your clipboard.
 
@@ -52,16 +51,21 @@ All operations happen locally inside your browser session.
 ## Privacy & Data
 
 This extension **does not** collect, transmit, or store any user or form data.
-All functionality (cache toggle, form detection, and form checks) is performed entirely on your device.
+All functionality (cache bypass, form detection, and form checks) is performed entirely on your device.
 
 **Permissions Used:**
-- `storage` - To save your extension on/off preference locally
 - `activeTab` - To read form information from the current active tab
 - `<all_urls>` - Required because Dynamics 365 forms can be embedded on any website, not just Microsoft domains. The extension only activates when it detects a Dynamics 365 form on the page.
 
 ---
 
 # Changelog
+
+## Unreleased
+
+- Removed the activation toggle and auto-disable state.
+- Cache bypass is now always active on supported Dynamics form URLs.
+- Removed the unused `storage` permission.
 
 ## [1.0.0] - 2025-01-XX
 

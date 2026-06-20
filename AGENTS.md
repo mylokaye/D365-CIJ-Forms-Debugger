@@ -12,10 +12,10 @@ The shipped extension lives in `Chrome-Edge/` and currently uses Manifest V3 wit
 
 - `Chrome-Edge/manifest.json`: Manifest V3 entry point, permissions, content-script registration, action, service worker, and icons.
 - `Chrome-Edge/config.js`: shared constants exposed through the global `CONFIG` object.
-- `Chrome-Edge/background.js`: service worker that watches Dynamics asset-tab URL changes and adds or removes the no-cache hash.
+- `Chrome-Edge/background.js`: service worker that watches Dynamics asset-tab URL changes and adds the no-cache hash.
 - `Chrome-Edge/content-script.js`: page-side form detection, resource observation, mutation observation, and popup messaging.
 - `Chrome-Edge/popup.html`: popup markup and styles.
-- `Chrome-Edge/popup.js`: popup state, storage access, active-tab messaging, copy actions, and support links.
+- `Chrome-Edge/popup.js`: popup state, active-tab messaging, copy actions, and support links.
 - `Chrome-Edge/icons/`: packaged extension artwork.
 - `README.md`: user-facing installation, behavior, privacy, and release information.
 - `docs/REPOSITORY_REVIEW.md`: current architecture review, known gaps, and development priorities.
@@ -25,10 +25,10 @@ The shipped extension lives in `Chrome-Edge/` and currently uses Manifest V3 wit
 1. Chrome injects `config.js` and `content-script.js` into matching pages at `document_start`.
 2. The content script detects a Dynamics form using `[data-form-id]`, observes resource entries and direct form-container mutations, and responds to `GET_FORM_INFO`.
 3. Opening the popup queries the active tab and sends `GET_FORM_INFO` to its content script.
-4. The popup reads and writes `nocacheEnabled` and `extensionEnabled` in `chrome.storage.local` and renders the detected form state.
-5. The background service worker listens to `chrome.tabs.onUpdated`; for matching Dynamics asset URLs it reads `nocacheEnabled` and updates the URL hash when necessary.
+4. The popup renders the detected form state and reports that cache bypass is active; it has no activation control or persisted activation state.
+5. The background service worker listens to `chrome.tabs.onUpdated` and adds the no-cache hash to matching Dynamics asset URLs.
 
-Do not assume that the popup toggle currently controls the background worker. `extensionEnabled` and `nocacheEnabled` are separate stored values, and the current implementation does not connect them. Consult `docs/REPOSITORY_REVIEW.md` before changing this behavior.
+The extension is intentionally always active on supported Dynamics form URLs. Adding an activation or cache preference requires an explicit product decision, a storage migration plan, and updated permissions documentation.
 
 ## Documentation
 
@@ -91,8 +91,8 @@ Do not claim that no data is stored when preferences are stored locally. Disting
 
 ## State and Messaging Rules
 
-- The canonical storage keys are currently `nocacheEnabled` and `extensionEnabled`.
-- Defaults are currently defined in `CONFIG.DEFAULTS`; use nullish fallback so an explicit `false` is preserved.
+- The extension currently has no persisted runtime state and does not require the `storage` permission.
+- Do not introduce persisted activation or cache state without an explicit product requirement and migration plan.
 - Storage writes must handle failures and leave the UI consistent with the persisted state. If a write fails, revert optimistic UI state or show an error.
 - Messages must use constants from `CONFIG.MESSAGE_TYPES` and return a documented response shape.
 - Only return `true` from `chrome.runtime.onMessage` when a response will actually be sent asynchronously.
@@ -140,9 +140,8 @@ At minimum, test:
 - A supported page before the form is inserted, followed by late form insertion.
 - A normal website with no form.
 - A Dynamics form embedded in a non-Dynamics host page, when that flow is in scope.
-- Extension enabled and disabled.
-- Cache-bypass enabled and disabled, including a URL that already has a hash or query string.
-- Popup reopening after state changes and after a browser restart.
+- Always-active cache bypass, including a URL that already has a hash or query string.
+- Popup reopening after navigation and after a browser restart.
 - Missing content-script receiver, such as a restricted browser page.
 - Copy-to-clipboard success and failure.
 - Feedback and support links.
@@ -176,4 +175,3 @@ node --check Chrome-Edge/popup.js 2>&1 | distill "Did JavaScript syntax validati
 - Do not rewrite the extension into a framework or add a build pipeline without explicit approval.
 - Do not modify generated release artifacts or store listings as a substitute for changing source.
 - Preserve unrelated working-tree changes and never use destructive Git commands without explicit approval.
-
