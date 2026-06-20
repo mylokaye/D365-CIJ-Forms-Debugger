@@ -21,18 +21,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 });
 
 /**
- * Listens for messages from the popup UI to toggle cache bypass on/off.
- * Responds to TOGGLE_NOCACHE messages and applies changes to Dynamics 365 tabs.
- */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === CONFIG.MESSAGE_TYPES.TOGGLE_NOCACHE) {
-    if (sender.tab && dynamicsRegex.test(sender.tab.url)) {
-      applyNoCache(sender.tab.id, sender.tab.url, message.enabled);
-    }
-  }
-});
-
-/**
  * Applies or removes the #d365mkt-nocache hash to a tab's URL based on user preference.
  * Reads the nocacheEnabled setting from storage and modifies the URL accordingly.
  * Only updates the tab if the URL actually needs to change.

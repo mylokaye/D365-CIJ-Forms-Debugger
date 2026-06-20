@@ -25,10 +25,10 @@ function updateCacheToggleUI(cacheDisabled, extensionEnabled) {
   // If extension is disabled, cache is always enabled (not bypassed)
   if (!extensionEnabled || !cacheDisabled) {
     cacheToggleElement.className = "status-button status-red";
-    cacheToggleElement.innerHTML = "<div>Cache enabled</div>";
+    cacheToggleElement.textContent = "Cache enabled";
   } else {
     cacheToggleElement.className = "status-button status-green";
-    cacheToggleElement.innerHTML = "<div>Cache disabled</div>";
+    cacheToggleElement.textContent = "Cache disabled";
   }
 }
 
@@ -39,10 +39,10 @@ function updateCacheToggleUI(cacheDisabled, extensionEnabled) {
 function updateFormStatusUI(detected) {
   if (detected) {
     formStatusElement.className = "status-button status-green";
-    formStatusElement.innerHTML = "<div>Form detected</div>";
+    formStatusElement.textContent = "Form detected";
   } else {
     formStatusElement.className = "status-button status-red";
-    formStatusElement.innerHTML = "<div>Form not detected</div>";
+    formStatusElement.textContent = "Form not detected";
   }
 }
 
