@@ -99,17 +99,6 @@ CONFIG.CACHE_BYPASS = {
 };
 
 /**
- * Storage keys used in chrome.storage.local
- * @const {Object}
- */
-CONFIG.STORAGE_KEYS = {
-  /** Key for storing the cache bypass enabled/disabled preference */
-  NOCACHE_ENABLED: "nocacheEnabled",
-  /** Key for storing the extension enabled/disabled state */
-  EXTENSION_ENABLED: "extensionEnabled"
-};
-
-/**
  * DOM selectors used for form detection
  * @const {Object}
  */
@@ -125,17 +114,6 @@ CONFIG.SELECTORS = {
  * @const {Object}
  */
 CONFIG.MESSAGE_TYPES = {
-};
-
-/**
- * Default values
- * @const {Object}
- */
-CONFIG.DEFAULTS = {
-  /** Default state for cache bypass (enabled by default) */
-  NOCACHE_ENABLED: true,
-  /** Default state for extension (enabled by default) */
-  EXTENSION_ENABLED: true
 };
 
 // Make CONFIG available globally (for content scripts)

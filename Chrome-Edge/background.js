@@ -21,39 +21,21 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 });
 
 /**
- * Applies or removes the #d365mkt-nocache hash to a tab's URL based on user preference.
- * Reads the nocacheEnabled setting from storage and modifies the URL accordingly.
+ * Applies the #d365mkt-nocache hash to a tab's URL.
  * Only updates the tab if the URL actually needs to change.
  *
  * @param {number} tabId - The ID of the tab to modify
  * @param {string} url - The current URL of the tab
- * @param {boolean|null} [forceEnabled=null] - Force a specific enabled state, or null to read from storage
  * @returns {void}
  */
-function applyNoCache(tabId, url, forceEnabled = null) {
-  chrome.storage.local.get([CONFIG.STORAGE_KEYS.NOCACHE_ENABLED], (data) => {
+function applyNoCache(tabId, url) {
+  if (url.includes(CONFIG.CACHE_BYPASS.URL_HASH)) {
+    return;
+  }
+
+  chrome.tabs.update(tabId, { url: url + CONFIG.CACHE_BYPASS.URL_HASH }, () => {
     if (chrome.runtime.lastError) {
-      console.error('[D365 Form Tester] Error reading storage in background:', chrome.runtime.lastError);
-      return;
-    }
-
-    const enabled = forceEnabled !== null ? forceEnabled : (data[CONFIG.STORAGE_KEYS.NOCACHE_ENABLED] ?? CONFIG.DEFAULTS.NOCACHE_ENABLED);
-
-    let newUrl = url;
-
-    // Only append if not already present
-    if (enabled && !url.includes(CONFIG.CACHE_BYPASS.URL_HASH)) {
-      newUrl = url + CONFIG.CACHE_BYPASS.URL_HASH;
-    } else if (!enabled && url.includes(CONFIG.CACHE_BYPASS.URL_HASH)) {
-      newUrl = url.replace(CONFIG.CACHE_BYPASS.URL_HASH, "");
-    }
-
-    if (newUrl !== url) {
-      chrome.tabs.update(tabId, { url: newUrl }, () => {
-        if (chrome.runtime.lastError) {
-          console.error('[D365 Form Tester] Error updating tab URL:', chrome.runtime.lastError);
-        }
-      });
+      console.error('[D365 Form Tester] Error updating tab URL:', chrome.runtime.lastError);
     }
   });
 }
