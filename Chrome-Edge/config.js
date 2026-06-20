@@ -103,8 +103,12 @@ CONFIG.CACHE_BYPASS = {
  * @const {Object}
  */
 CONFIG.SELECTORS = {
-  /** Attribute selector for Dynamics 365 form containers */
-  FORM_CONTAINER: "[data-form-id]",
+  /** Attribute selector used only for Dynamics 365 form ID detection */
+  FORM_ID_CONTAINER: "[data-form-id]",
+  /** Dynamics 365 form element used for field detection when no form ID exists */
+  MARKETING_FORM: "form.marketingForm",
+  /** Data-entry controls counted as fields; submit and other action controls are excluded */
+  FIELD_CONTROLS: "input:not([type='submit']):not([type='button']):not([type='reset']), select, textarea",
   /** All script tags with src attributes */
   SCRIPTS: "script[src]"
 };
@@ -114,6 +118,7 @@ CONFIG.SELECTORS = {
  * @const {Object}
  */
 CONFIG.MESSAGE_TYPES = {
+  GET_FORM_INFO: "GET_FORM_INFO"
 };
 
 // Make CONFIG available globally (for content scripts)

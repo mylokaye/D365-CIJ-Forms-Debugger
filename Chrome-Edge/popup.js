@@ -15,16 +15,16 @@ const fieldsCountElement = document.getElementById("fields-count");
 const formStatusElement = document.getElementById("form-status");
 
 /**
- * Update the form detection status button
- * @param {boolean} detected - Whether a form is detected
+ * Update the form ID detection status pill
+ * @param {boolean} detected - Whether a form ID is detected
  */
-function updateFormStatusUI(detected) {
+function updateFormIdStatusUI(detected) {
   if (detected) {
     formStatusElement.className = "status-button status-green";
-    formStatusElement.textContent = "Form detected";
+    formStatusElement.textContent = "Form ID detected";
   } else {
     formStatusElement.className = "status-button status-red";
-    formStatusElement.textContent = "Form not detected";
+    formStatusElement.textContent = "Form ID not detected";
   }
 }
 
@@ -35,24 +35,21 @@ function queryFormInfo() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (!tabs[0]) return;
 
-    chrome.tabs.sendMessage(tabs[0].id, { type: "GET_FORM_INFO" }, (response) => {
+    chrome.tabs.sendMessage(tabs[0].id, { type: CONFIG.MESSAGE_TYPES.GET_FORM_INFO }, (response) => {
       if (chrome.runtime.lastError) {
-        // No response from content script - form not detected
-        updateFormStatusUI(false);
+        // No response from content script - neither check can run
+        updateFormIdStatusUI(false);
         formIdElement.textContent = "---";
         fieldsCountElement.textContent = "0";
         return;
       }
 
-      if (response && response.formDetected) {
-        updateFormStatusUI(true);
-        formIdElement.textContent = response.formId || "Unknown";
-        fieldsCountElement.textContent = response.fieldCount || "0";
-      } else {
-        updateFormStatusUI(false);
-        formIdElement.textContent = "---";
-        fieldsCountElement.textContent = "0";
-      }
+      const formIdDetected = Boolean(response && response.formIdDetected);
+      const fieldsDetected = Boolean(response && response.fieldsDetected);
+
+      updateFormIdStatusUI(formIdDetected);
+      formIdElement.textContent = formIdDetected ? (response.formId || "Unknown") : "---";
+      fieldsCountElement.textContent = fieldsDetected ? String(response.fieldCount) : "0";
     });
   });
 }

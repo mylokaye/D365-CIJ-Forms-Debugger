@@ -71,12 +71,12 @@ Tab-update callback errors are handled.
 `content-script.js` starts at `document_start` and:
 
 - Observes resource performance entries containing `landingpageforms` and logs them.
-- Detects the first element matching `[data-form-id]`.
-- Reads `data-form-id`, `data-form-api-url`, and `data-cached-form-url`.
+- Checks the first element matching `[data-form-id]` for Form ID metadata independently of field detection.
+- Reads `data-form-id`, `data-form-api-url`, and `data-cached-form-url` when present.
 - Collects form-related script URLs for diagnostic logging.
-- Reports cache-hash presence and counts the form container's direct children.
-- Attaches a `MutationObserver` to the detected container after DOM readiness.
-- Responds to the `GET_FORM_INFO` message with detection state, form ID, and count.
+- Counts descendant `input`, `select`, and `textarea` controls inside the Form ID container or a standalone `form.marketingForm`.
+- Attaches a `MutationObserver` to the field container after DOM readiness and observes nested control changes.
+- Responds to `GET_FORM_INFO` with separate Form ID and field detection states.
 
 It does not transmit detected data. Detection can succeed when the popup asks later, but mutation monitoring is not attached if the form container is inserted after the one initialization attempt.
 
@@ -85,7 +85,7 @@ It does not transmit detected data. Detection can succeed when the popup asks la
 `popup.html` contains all popup markup and CSS. `popup.js`:
 
 - Queries the active tab and requests form information from its content script.
-- Shows form ID, direct-child count, form detection status, and the always-active cache-bypass status.
+- Shows Form ID status, independent field count, and the always-active cache-bypass status.
 - Copies form ID or count to the clipboard.
 - Opens feedback and support pages on `pattens.tech`.
 
@@ -99,8 +99,7 @@ The extension has no persisted activation state. The background worker always ap
 
 ### High priority
 
-1. **The field count is not necessarily a field count.** `formContainer.children.length` counts direct child elements, not form controls or hidden inputs specifically. The README and popup label make a stronger claim than the implementation supports.
-2. **Late-inserted forms are not mutation-monitored.** The observer attaches only if a form exists at the single DOM-ready check. Popup-time rescanning finds a later form but does not establish ongoing monitoring.
+1. **Late-inserted forms are not mutation-monitored.** The observer attaches only if a field container exists at the single DOM-ready check. Popup-time rescanning finds later fields but does not establish ongoing monitoring.
 
 ### Medium priority
 
@@ -115,7 +114,6 @@ The extension has no persisted activation state. The background worker always ap
 2. README describes `<all_urls>` as a permission while the manifest splits broad content-script matching from explicit permissions. The user-facing explanation should still clearly disclose broad site access.
 3. README says the extension does not store form or user data; it does store local preferences. The privacy claim can remain accurate if it distinguishes preferences from collected form data.
 4. README says there are no network calls. The extension does not send telemetry, but its support links intentionally navigate to external sites. Wording should distinguish extension-initiated data transmission from user navigation.
-5. `CONFIG.MESSAGE_TYPES` is empty while `GET_FORM_INFO` is hard-coded.
 6. Overlay-era constants and comments remain after overlay removal.
 7. The message listener returns `true` after responding synchronously.
 8. Some Chrome API error paths are missing, including tab query/create flows.

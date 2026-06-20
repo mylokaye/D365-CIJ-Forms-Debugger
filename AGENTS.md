@@ -23,7 +23,7 @@ The shipped extension lives in `Chrome-Edge/` and currently uses Manifest V3 wit
 ## Current Runtime Flow
 
 1. Chrome injects `config.js` and `content-script.js` into matching pages at `document_start`.
-2. The content script detects a Dynamics form using `[data-form-id]`, observes resource entries and direct form-container mutations, and responds to `GET_FORM_INFO`.
+2. The content script checks `[data-form-id]` metadata separately from field controls, observes resource entries and nested form mutations, and responds to `GET_FORM_INFO`.
 3. Opening the popup queries the active tab and sends `GET_FORM_INFO` to its content script.
 4. The popup renders the detected form state and reports that cache bypass is active; it has no activation control or persisted activation state.
 5. The background service worker listens to `chrome.tabs.onUpdated` and adds the no-cache hash to matching Dynamics asset URLs.
@@ -101,8 +101,9 @@ Do not claim that no data is stored when preferences are stored locally. Disting
 
 ## Form Detection Rules
 
-- Treat `[data-form-id]` as the current primary detection signal, not proof that all form fields have loaded.
-- Define what “field count” means before changing it. The current code counts direct children of the form container, which may not equal the number of form controls.
+- Treat `[data-form-id]` only as the Form ID signal; its absence must not prevent independent field detection.
+- Field count means descendant `input`, `select`, and `textarea` controls, including hidden inputs and excluding submit/button/reset controls.
+- Scope field detection to a Form ID container when present, otherwise to `form.marketingForm`; do not count unrelated controls across the whole page.
 - Dynamics forms may be injected after `DOMContentLoaded`; detection and observation changes must cover late insertion without observing the entire document more broadly than needed.
 - Test top-level Dynamics asset pages and forms embedded in third-party pages separately. A host page URL and an iframe/resource URL are different execution and permission contexts.
 - Preserve page performance. Disconnect observers when no longer needed and avoid repeated full-document scans.

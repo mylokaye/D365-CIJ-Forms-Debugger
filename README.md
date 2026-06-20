@@ -66,6 +66,8 @@ All functionality (cache bypass, form detection, and form checks) is performed e
 - Removed the activation toggle and auto-disable state.
 - Cache bypass is now always active on supported Dynamics form URLs.
 - Removed the unused `storage` permission.
+- Split Form ID detection from field detection so either check can succeed independently.
+- Field count now includes `input`, `select`, and `textarea` controls while excluding action buttons.
 
 ## [1.0.0] - 2025-01-XX
 

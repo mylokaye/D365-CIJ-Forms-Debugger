@@ -36,106 +36,109 @@ function detectNetworkRequests() {
 }
 
 /**
- * Scans the DOM for Dynamics 365 form containers and extracts metadata.
- * Looks for elements with [data-form-id] attribute and retrieves form information.
- * Also identifies form-related scripts and cache bypass methods.
+ * Checks only for a Dynamics 365 form ID and its related metadata.
  *
- * @returns {Object} Form state object containing detection results and metadata
- * @returns {boolean} return.found - Whether a Dynamics 365 form was detected on the page
- * @returns {string} [return.formId] - The unique form identifier from data-form-id attribute
- * @returns {string} [return.apiUrl] - The form API URL from data-form-api-url attribute
- * @returns {string} [return.cachedUrl] - The cached form URL if available
- * @returns {number} [return.fieldCount] - Number of form fields currently loaded
- * @returns {Array<string>} [return.relatedScripts] - URLs of form-related JavaScript files
- * @returns {Object} [return.cacheBypassMethods] - Object indicating active cache bypass methods
+ * @returns {{found: boolean, formId: string|null, apiUrl: string|null, cachedUrl: string|null}}
  */
-function detectDynamicsForm() {
+function detectFormId() {
   const LOG_PREFIX = CONFIG.LOGGING.PREFIX;
   const LOG_STYLE = CONFIG.LOGGING.PREFIX_STYLE;
 
-  console.log(LOG_PREFIX + ' %cScanning page for form...', LOG_STYLE, `color: ${CONFIG.COLORS.WARNING};`);
+  console.log(LOG_PREFIX + ' %cChecking for form ID...', LOG_STYLE, `color: ${CONFIG.COLORS.WARNING};`);
 
   let formContainer;
   try {
-    formContainer = document.querySelector(CONFIG.SELECTORS.FORM_CONTAINER);
+    formContainer = document.querySelector(CONFIG.SELECTORS.FORM_ID_CONTAINER);
   } catch (e) {
-    console.error(LOG_PREFIX + ' %cError querying for form container:', LOG_STYLE, `color: ${CONFIG.COLORS.ERROR};`, e);
-    return { found: false, error: e.message };
+    console.error(LOG_PREFIX + ' %cError checking for form ID:', LOG_STYLE, `color: ${CONFIG.COLORS.ERROR};`, e);
+    return { found: false, formId: null, apiUrl: null, cachedUrl: null };
   }
 
-  if (formContainer) {
-    console.log(LOG_PREFIX + ' %c✓ FORM DETECTED', LOG_STYLE, `color: ${CONFIG.COLORS.SUCCESS}; font-size: 14px;`);
-    
-    const formData = {
-      formId: formContainer.getAttribute('data-form-id'),
-      apiUrl: formContainer.getAttribute('data-form-api-url'),
-      cachedUrl: formContainer.getAttribute('data-cached-form-url')
-    };
-    
-    console.log(LOG_PREFIX + ' %cForm ID:', LOG_STYLE, `color: ${CONFIG.COLORS.INFO};`, formData.formId);
-    console.log(LOG_PREFIX + ' %cAPI URL:', LOG_STYLE, `color: ${CONFIG.COLORS.INFO};`, formData.apiUrl);
+  if (!formContainer) {
+    console.log(LOG_PREFIX + ' %c✗ FORM ID NOT DETECTED', LOG_STYLE, `color: ${CONFIG.COLORS.ERROR}; font-size: 14px;`);
+    return { found: false, formId: null, apiUrl: null, cachedUrl: null };
+  }
 
-    // Log all scripts on the page, filtering for form-related ones
-    const allScripts = Array.from(document.querySelectorAll(CONFIG.SELECTORS.SCRIPTS)).map(s => s.src);
-    const relatedScripts = allScripts.filter(src => 
-      src.includes('dynamics') || src.includes('form') || src.includes('mkt') || src.includes('forms')
+  const formIdState = {
+    found: true,
+    formId: formContainer.getAttribute('data-form-id'),
+    apiUrl: formContainer.getAttribute('data-form-api-url'),
+    cachedUrl: formContainer.getAttribute('data-cached-form-url')
+  };
+
+  console.log(LOG_PREFIX + ' %c✓ FORM ID DETECTED', LOG_STYLE, `color: ${CONFIG.COLORS.SUCCESS}; font-size: 14px;`);
+  console.log(LOG_PREFIX + ' %cForm ID:', LOG_STYLE, `color: ${CONFIG.COLORS.INFO};`, formIdState.formId);
+  return formIdState;
+}
+
+/**
+ * Finds the most specific container that can contain Dynamics 365 form fields.
+ * Form ID presence is not required.
+ *
+ * @returns {Element|null}
+ */
+function getFieldContainer() {
+  const formIdContainer = document.querySelector(CONFIG.SELECTORS.FORM_ID_CONTAINER);
+
+  if (formIdContainer) {
+    const nestedMarketingForm = formIdContainer.matches(CONFIG.SELECTORS.MARKETING_FORM)
+      ? formIdContainer
+      : formIdContainer.querySelector(CONFIG.SELECTORS.MARKETING_FORM);
+
+    return nestedMarketingForm || formIdContainer;
+  }
+
+  return document.querySelector(CONFIG.SELECTORS.MARKETING_FORM);
+}
+
+/**
+ * Checks only for form fields and counts data-entry controls.
+ *
+ * @returns {{found: boolean, fieldCount: number}}
+ */
+function detectFormFields() {
+  const LOG_PREFIX = CONFIG.LOGGING.PREFIX;
+  const LOG_STYLE = CONFIG.LOGGING.PREFIX_STYLE;
+
+  try {
+    const fieldContainer = getFieldContainer();
+    const fieldCount = fieldContainer
+      ? fieldContainer.querySelectorAll(CONFIG.SELECTORS.FIELD_CONTROLS).length
+      : 0;
+
+    console.log(
+      LOG_PREFIX + ' %cForm fields detected:',
+      LOG_STYLE,
+      `color: ${fieldCount > 0 ? CONFIG.COLORS.CYAN : CONFIG.COLORS.NOTICE};`,
+      fieldCount
     );
-    
-    console.log(LOG_PREFIX + ' %cTotal scripts loaded:', LOG_STYLE, `color: ${CONFIG.COLORS.PURPLE};`, allScripts.length);
-    if (relatedScripts.length > 0) {
-      console.log(LOG_PREFIX + ' %cRelated scripts:', LOG_STYLE, `color: ${CONFIG.COLORS.PURPLE};`, relatedScripts);
-    }
 
-    // Detect cache-busting methods in use
-    const url = window.location.href;
-    const cacheBypassMethods = {
-      urlHash: url.includes(CONFIG.CACHE_BYPASS.URL_HASH),
-      apiParameter: false
-    };
-
-    const formState = {
-      found: true,
-      implementation: 'dynamic',
-      ...formData,
-      relatedScripts,
-      cacheBypassMethods,
-      fieldsLoaded: formContainer.children.length > 0,
-      fieldCount: formContainer.children.length,
-      allScripts: allScripts.length
-    };
-
-    console.log(LOG_PREFIX + ' %cForm fields detected:', LOG_STYLE, `color: ${CONFIG.COLORS.CYAN};`, formState.fieldCount);
-    return formState;
+    return { found: fieldCount > 0, fieldCount };
+  } catch (e) {
+    console.error(LOG_PREFIX + ' %cError checking form fields:', LOG_STYLE, `color: ${CONFIG.COLORS.ERROR};`, e);
+    return { found: false, fieldCount: 0 };
   }
-
-  console.log(LOG_PREFIX + ' %c✗ NO FORM DETECTED', LOG_STYLE, `color: ${CONFIG.COLORS.ERROR}; font-size: 14px;`);
-  console.log(LOG_PREFIX + ' %cLooking for: [data-form-id] attribute', LOG_STYLE, `color: ${CONFIG.COLORS.NOTICE};`);
-  return { found: false };
 }
 
 /**
  * Sets up a MutationObserver to monitor dynamic changes to form fields.
- * Watches for child elements being added to the form container and logs field count updates.
- *
- * Note: Only observes direct children (subtree: false) to avoid performance overhead
- * from monitoring all descendant changes in the form tree.
  *
  * @returns {void}
  */
 function monitorFormMutations() {
-  const formContainer = document.querySelector(CONFIG.SELECTORS.FORM_CONTAINER);
+  const fieldContainer = getFieldContainer();
   const LOG_PREFIX = CONFIG.LOGGING.PREFIX;
   const LOG_STYLE = CONFIG.LOGGING.PREFIX_STYLE;
 
-  if (!formContainer) {
+  if (!fieldContainer) {
     console.log(LOG_PREFIX + ' %cNo form to monitor for mutations', LOG_STYLE, `color: ${CONFIG.COLORS.NOTICE};`);
     return;
   }
 
-  let lastFieldCount = formContainer.children.length;
+  let lastFieldCount = fieldContainer.querySelectorAll(CONFIG.SELECTORS.FIELD_CONTROLS).length;
 
-  const observer = new MutationObserver((mutations) => {
-    const currentFieldCount = formContainer.children.length;
+  const observer = new MutationObserver(() => {
+    const currentFieldCount = fieldContainer.querySelectorAll(CONFIG.SELECTORS.FIELD_CONTROLS).length;
 
     // Only log if count actually changed
     if (currentFieldCount !== lastFieldCount) {
@@ -144,9 +147,9 @@ function monitorFormMutations() {
     }
   });
 
-  observer.observe(formContainer, {
+  observer.observe(fieldContainer, {
     childList: true,
-    subtree: false // Don't observe deep - just direct children
+    subtree: true
   });
 
   console.log(LOG_PREFIX + ' %cMutation observer active', LOG_STYLE, `color: ${CONFIG.COLORS.SUCCESS};`);
@@ -162,16 +165,16 @@ function monitorFormMutations() {
  * Message listener to respond to popup requests for form information
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "GET_FORM_INFO") {
-    const formState = detectDynamicsForm();
+  if (message.type === CONFIG.MESSAGE_TYPES.GET_FORM_INFO) {
+    const formIdState = detectFormId();
+    const fieldState = detectFormFields();
 
     sendResponse({
-      formDetected: formState.found,
-      formId: formState.formId || null,
-      fieldCount: formState.fieldCount || 0
+      formIdDetected: formIdState.found,
+      formId: formIdState.formId,
+      fieldsDetected: fieldState.found,
+      fieldCount: fieldState.fieldCount
     });
-
-    return true; // Keep the message channel open for async response
   }
 
   // TOGGLE_EXTENSION message removed - no overlay to toggle
@@ -185,10 +188,12 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     console.log(CONFIG.LOGGING.PREFIX + ' %cMonitoring forms - all UI in popup', CONFIG.LOGGING.PREFIX_STYLE, `color: ${CONFIG.COLORS.SUCCESS};`);
     monitorFormMutations();
-    detectDynamicsForm();
+    detectFormId();
+    detectFormFields();
   });
 } else {
   console.log(CONFIG.LOGGING.PREFIX + ' %cMonitoring forms - all UI in popup', CONFIG.LOGGING.PREFIX_STYLE, `color: ${CONFIG.COLORS.SUCCESS};`);
   monitorFormMutations();
-  detectDynamicsForm();
+  detectFormId();
+  detectFormFields();
 }
