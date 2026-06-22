@@ -1,12 +1,12 @@
 # Repository Review
 
-Reviewed on 20 June 2026. This document describes the repository as found; it is not a promise that every current behavior is intentional.
+Reviewed on 22 June 2026. This document describes the repository as found; it is not a promise that every current behavior is intentional.
 
 ## Executive Summary
 
 The repository contains a small, readable, dependency-free Manifest V3 extension for Chrome and Edge. Its source is directly loadable from `Chrome-Edge/`; there is no compilation or packaging step. The implementation is split sensibly between a service worker, a content script, a popup, and shared constants.
 
-The extension now has a deliberately simple state model: cache bypass is always active on supported Dynamics asset URLs, with no activation control or persisted preference. Form detection and permissions still need deliberate review because the extension supports forms embedded on arbitrary sites while its background URL handling is limited to Dynamics asset pages.
+The extension keeps cache bypass active and automatically renders editable hidden-field copies. Form detection and permissions still need deliberate review because the extension supports forms embedded on arbitrary sites while its background URL handling is limited to Dynamics asset pages.
 
 ## Current Structure
 
@@ -50,9 +50,9 @@ Although `host_permissions` is limited to Dynamics domains, the `<all_urls>` con
 
 ### Shared Configuration
 
-`config.js` defines the global `CONFIG` object. It contains DOM IDs, timeouts, colors, logging strings, the Dynamics asset URL pattern, the no-cache hash, selectors, and an empty `MESSAGE_TYPES` object.
+`config.js` defines the global `CONFIG` object. It contains DOM IDs, timeouts, colors, logging strings, the Dynamics asset URL pattern, the no-cache hash, selectors, and message types.
 
-Several values are remnants of a removed in-page overlay (`STYLE`, `OVERLAY`, `OVERLAY_Z_INDEX`, and related IDs). The CommonJS export branch is not used by the extension. The message type used at runtime is currently a literal instead of a shared constant.
+Several values are remnants of a removed in-page overlay (`STYLE`, `OVERLAY`, `OVERLAY_Z_INDEX`, and related IDs). The CommonJS export branch is not used by the extension. Runtime message types are shared through `CONFIG.MESSAGE_TYPES`.
 
 ### Background Service Worker
 
@@ -77,6 +77,8 @@ Tab-update callback errors are handled.
 - Counts descendant `input`, `select`, and `textarea` controls inside the Form ID container or a standalone `form.marketingForm`.
 - Attaches a `MutationObserver` to the field container after DOM readiness and observes nested control changes.
 - Responds to `GET_FORM_INFO` with separate Form ID and field detection states.
+- Automatically renders editable, non-submitting visual copies of native hidden inputs and Dynamics form-designer hidden field blocks.
+- Synchronizes edits from those visual copies to source controls for the current page session.
 
 It does not transmit detected data. Detection can succeed when the popup asks later, but mutation monitoring is not attached if the form container is inserted after the one initialization attempt.
 
@@ -85,15 +87,15 @@ It does not transmit detected data. Detection can succeed when the popup asks la
 `popup.html` contains all popup markup and CSS. `popup.js`:
 
 - Queries the active tab and requests form information from its content script.
-- Shows Form ID status, independent field count, and the always-active cache-bypass status.
-- Copies form ID or count to the clipboard.
-- Opens feedback and support pages on `pattens.tech`.
+- Shows the Form ID, always-active cache-bypass status, and installed version in a compact branded panel.
+- Copies the Form ID to the clipboard.
+- Opens the support page from the popup information button.
 
 The HTML link destinations point to `mylokaye.info`, but click handlers prevent those defaults and open different `pattens.tech` URLs. This should be aligned for accessibility, transparency, and behavior when JavaScript is unavailable.
 
 ## State Model Found
 
-The extension has no persisted activation state. The background worker always applies cache bypass to supported Dynamics asset URLs, and the popup exposes no activation control. This avoids stale preferences and removes the need for the `storage` permission.
+The extension has no persisted state. The background worker always applies cache bypass to supported Dynamics asset URLs. Form names and values are not stored or transmitted by the extension. Editing a shown field updates its source control, which the host page may transmit through its normal form submission.
 
 ## Findings and Risks
 
@@ -112,7 +114,7 @@ The extension has no persisted activation state. The background worker always ap
 
 1. README version `1.0.0` differs from manifest version `1.0.1`.
 2. README describes `<all_urls>` as a permission while the manifest splits broad content-script matching from explicit permissions. The user-facing explanation should still clearly disclose broad site access.
-3. README says the extension does not store form or user data; it does store local preferences. The privacy claim can remain accurate if it distinguishes preferences from collected form data.
+3. README documents that hidden-field values and edits remain page-local until normal form submission.
 4. README says there are no network calls. The extension does not send telemetry, but its support links intentionally navigate to external sites. Wording should distinguish extension-initiated data transmission from user navigation.
 6. Overlay-era constants and comments remain after overlay removal.
 7. The message listener returns `true` after responding synchronously.

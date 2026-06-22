@@ -21,7 +21,8 @@ CONFIG.ELEMENT_IDS = {
   OVERLAY: "d365-forms-tester-overlay",
   FORM_BADGE: "form-badge",
   CACHE_BADGE: "cache-badge",
-  FORM_INFO: "form-info"
+  FORM_INFO: "form-info",
+  HIDDEN_FIELDS_STYLE: "d365-debug-hidden-fields-style"
 };
 
 /**
@@ -43,37 +44,16 @@ CONFIG.STYLES = {
 };
 
 /**
- * Color palette used for console logging and UI elements
- * @const {Object}
- */
-CONFIG.COLORS = {
-  /** Primary brand color (orange) */
-  BRAND: "#FF6B35",
-  /** Success state (green) */
-  SUCCESS: "#4CAF50",
-  /** Error/inactive state (red) */
-  ERROR: "#F44336",
-  /** Info state (blue) */
-  INFO: "#2196F3",
-  /** Cyan accent */
-  CYAN: "#00BCD4",
-  /** Purple accent */
-  PURPLE: "#9C27B0",
-  /** Warning state (amber) */
-  WARNING: "#FFC107",
-  /** Notice state (orange) */
-  NOTICE: "#FF9800"
-};
-
-/**
  * Console logging configuration
  * @const {Object}
  */
 CONFIG.LOGGING = {
   /** Prefix for all console log messages */
-  PREFIX: "%c[D365 Form Tester]",
-  /** CSS style for the log prefix */
-  PREFIX_STYLE: "color: #FF6B35; font-weight: bold;"
+  PREFIX: "[Dynamics 365 Form Debugger]",
+  /** Blue brand treatment for the plugin name */
+  PREFIX_STYLE: "color: #3360C5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; font-weight: 600;",
+  /** Matching typography with black diagnostic text */
+  MESSAGE_STYLE: "color: #171717; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; font-weight: 600;"
 };
 
 /**
@@ -98,6 +78,10 @@ CONFIG.CACHE_BYPASS = {
   URL_HASH: "#d365mkt-nocache"
 };
 
+CONFIG.URLS = {
+  SUPPORT: "https://mylokaye.info"
+};
+
 /**
  * DOM selectors used for form detection
  * @const {Object}
@@ -109,6 +93,10 @@ CONFIG.SELECTORS = {
   MARKETING_FORM: "form.marketingForm",
   /** Data-entry controls counted as fields; submit and other action controls are excluded */
   FIELD_CONTROLS: "input:not([type='submit']):not([type='button']):not([type='reset']), select, textarea",
+  /** Native hidden inputs and controls inside Dynamics field-block wrappers */
+  HIDDEN_FIELD_CANDIDATES: "input[type='hidden'], [class*='FormFieldBlock'] input, [class*='FormFieldBlock'] select, [class*='FormFieldBlock'] textarea",
+  /** Dynamics wraps form-designer hidden fields in a non-rendered field block */
+  DYNAMICS_FIELD_BLOCK: "[class*='FormFieldBlock']",
   /** All script tags with src attributes */
   SCRIPTS: "script[src]"
 };
@@ -119,6 +107,11 @@ CONFIG.SELECTORS = {
  */
 CONFIG.MESSAGE_TYPES = {
   GET_FORM_INFO: "GET_FORM_INFO"
+};
+
+CONFIG.HIDDEN_FIELD_DEBUG = {
+  CLASS_NAME: "d365-debug-hidden-field",
+  MARKER_ATTRIBUTE: "data-d365-debug-hidden-field"
 };
 
 // Make CONFIG available globally (for content scripts)

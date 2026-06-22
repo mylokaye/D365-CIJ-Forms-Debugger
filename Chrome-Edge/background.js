@@ -35,7 +35,18 @@ function applyNoCache(tabId, url) {
 
   chrome.tabs.update(tabId, { url: url + CONFIG.CACHE_BYPASS.URL_HASH }, () => {
     if (chrome.runtime.lastError) {
-      console.error('[D365 Form Tester] Error updating tab URL:', chrome.runtime.lastError);
+      console.error(
+        `%c${CONFIG.LOGGING.PREFIX}%c Cache bypass could not be applied. ${chrome.runtime.lastError.message}`,
+        CONFIG.LOGGING.PREFIX_STYLE,
+        CONFIG.LOGGING.MESSAGE_STYLE
+      );
+      return;
     }
+
+    console.log(
+      `%c${CONFIG.LOGGING.PREFIX}%c Cache bypass applied.`,
+      CONFIG.LOGGING.PREFIX_STYLE,
+      CONFIG.LOGGING.MESSAGE_STYLE
+    );
   });
 }

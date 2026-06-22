@@ -1,101 +1,78 @@
 /**
- * popup.js — Handles the extension popup UI for Form Debugger
- *
- * This script manages the popup interface showing form detection status,
- * form details, and cache control.
- *
- * Config is loaded from config.js (included via script tag before this file)
+ * popup.js — Renders extension status and detected Form ID.
+ * Config is loaded from config.js before this file.
  */
 
-/**
- * DOM element references
- */
-const formIdElement = document.getElementById("form-id");
-const fieldsCountElement = document.getElementById("fields-count");
-const formStatusElement = document.getElementById("form-status");
+const formIdButton = document.getElementById("form-id");
+const formIdValue = document.getElementById("form-id-value");
+const versionElement = document.getElementById("extension-version");
+const extensionInfoButton = document.getElementById("extension-info");
+
+versionElement.textContent = `V ${chrome.runtime.getManifest().version}`;
 
 /**
- * Update the form ID detection status pill
- * @param {boolean} detected - Whether a form ID is detected
+ * Updates the detected Form ID without changing the row structure.
+ *
+ * @param {string|null} formId - Detected Dynamics Form ID
  */
-function updateFormIdStatusUI(detected) {
-  if (detected) {
-    formStatusElement.className = "status-button status-green";
-    formStatusElement.textContent = "Form ID detected";
-  } else {
-    formStatusElement.className = "status-button status-red";
-    formStatusElement.textContent = "Form ID not detected";
-  }
+function updateFormId(formId) {
+  formIdValue.textContent = formId || "---";
+  formIdButton.disabled = !formId;
 }
 
 /**
- * Query the active tab for form information
+ * Queries the active tab for its detected Dynamics Form ID.
  */
 function queryFormInfo() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (!tabs[0]) return;
+    if (chrome.runtime.lastError || !tabs[0] || typeof tabs[0].id !== "number") {
+      updateFormId(null);
+      return;
+    }
 
     chrome.tabs.sendMessage(tabs[0].id, { type: CONFIG.MESSAGE_TYPES.GET_FORM_INFO }, (response) => {
-      if (chrome.runtime.lastError) {
-        // No response from content script - neither check can run
-        updateFormIdStatusUI(false);
-        formIdElement.textContent = "---";
-        fieldsCountElement.textContent = "0";
+      if (chrome.runtime.lastError || !response || response.formIdDetected !== true) {
+        updateFormId(null);
         return;
       }
 
-      const formIdDetected = Boolean(response && response.formIdDetected);
-      const fieldsDetected = Boolean(response && response.fieldsDetected);
-
-      updateFormIdStatusUI(formIdDetected);
-      formIdElement.textContent = formIdDetected ? (response.formId || "Unknown") : "---";
-      fieldsCountElement.textContent = fieldsDetected ? String(response.fieldCount) : "0";
+      updateFormId(response.formId || "Unknown");
     });
   });
 }
 
-/**
- * Query form info on popup open
- */
-queryFormInfo();
+formIdButton.addEventListener("click", () => {
+  const formId = formIdValue.textContent;
+  if (!formId || formId === "---" || formId === "Copied") return;
 
-/**
- * Add click-to-copy functionality for info values
- */
-function addCopyToClipboard(element) {
-  element.addEventListener("click", () => {
-    const text = element.textContent;
-    if (text && text !== "---" && text !== "0" && text !== "Copied") {
-      navigator.clipboard.writeText(text).then(() => {
-        // Visual feedback - show "Copied!" message
-        const originalText = element.textContent;
-        element.textContent = "Copied";
-        element.classList.add("is-copied");
+  navigator.clipboard.writeText(formId).then(() => {
+    const originalFormId = formId;
+    formIdValue.textContent = "Copied";
+    formIdButton.classList.add("is-copied");
 
-        setTimeout(() => {
-          element.textContent = originalText;
-          element.classList.remove("is-copied");
-        }, 1000);
-      }).catch(err => {
-        console.error('[D365 Form Tester] Failed to copy text:', err);
-      });
+    setTimeout(() => {
+      formIdValue.textContent = originalFormId;
+      formIdButton.classList.remove("is-copied");
+    }, 1000);
+  }).catch((error) => {
+    console.error(
+      `%c${CONFIG.LOGGING.PREFIX}%c Form ID could not be copied. ${error.message || String(error)}`,
+      CONFIG.LOGGING.PREFIX_STYLE,
+      CONFIG.LOGGING.MESSAGE_STYLE
+    );
+  });
+});
+
+extensionInfoButton.addEventListener("click", () => {
+  chrome.tabs.create({ url: CONFIG.URLS.SUPPORT }, () => {
+    if (chrome.runtime.lastError) {
+      console.error(
+        `%c${CONFIG.LOGGING.PREFIX}%c Support page could not be opened. ${chrome.runtime.lastError.message}`,
+        CONFIG.LOGGING.PREFIX_STYLE,
+        CONFIG.LOGGING.MESSAGE_STYLE
+      );
     }
   });
-}
-
-// Add copy functionality to info values
-addCopyToClipboard(formIdElement);
-addCopyToClipboard(fieldsCountElement);
-
-/**
- * Handle footer link clicks
- */
-document.getElementById("report-feedback").addEventListener("click", (e) => {
-  e.preventDefault();
-  chrome.tabs.create({ url: "https://mylokaye.info" });
 });
 
-document.getElementById("get-support").addEventListener("click", (e) => {
-  e.preventDefault();
-  chrome.tabs.create({ url: "https://mylokaye.info" });
-});
+queryFormInfo();
