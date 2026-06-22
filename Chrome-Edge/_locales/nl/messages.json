@@ -2,7 +2,7 @@
   "extensionName": { "message": "Dynamics 365 Form Debugger" },
   "extensionDescription": { "message": "Debug Dynamics 365 Customer Insights - Journeys-formulieren door de cache te omzeilen en verborgen velden weer te geven." },
   "extensionDetails": { "message": "Extensiedetails" },
-  "cacheDisabled": { "message": "Cache uitgeschakeld" },
+  "cacheDisabled": { "message": "Cache uit" },
   "formIdLabel": { "message": "Formulier-ID:" },
   "copyFormId": { "message": "Formulier-ID kopiëren" },
   "copied": { "message": "Gekopieerd" },
