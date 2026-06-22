@@ -5,9 +5,31 @@
 
 const formIdButton = document.getElementById("form-id");
 const formIdValue = document.getElementById("form-id-value");
+const formIdLabel = document.getElementById("form-id-label");
+const cacheStatus = document.getElementById("cache-status");
+const extensionDetails = document.getElementById("extension-details");
 const versionElement = document.getElementById("extension-version");
 const extensionInfoButton = document.getElementById("extension-info");
 
+/**
+ * Returns a localized message with a stable English fallback.
+ *
+ * @param {string} name - Message key from _locales
+ * @param {string} fallback - English fallback used if a locale entry is missing
+ * @returns {string}
+ */
+function getMessage(name, fallback) {
+  return chrome.i18n.getMessage(name) || fallback;
+}
+
+document.documentElement.lang = chrome.i18n.getUILanguage();
+document.title = getMessage("extensionName", "Dynamics 365 Form Debugger");
+cacheStatus.textContent = getMessage("cacheDisabled", "Cache disabled");
+formIdLabel.textContent = getMessage("formIdLabel", "Form ID:");
+formIdButton.title = getMessage("copyFormId", "Copy Form ID");
+extensionDetails.setAttribute("aria-label", getMessage("extensionDetails", "Extension details"));
+extensionInfoButton.title = getMessage("openSupport", "Open support");
+extensionInfoButton.setAttribute("aria-label", getMessage("openSupport", "Open support"));
 versionElement.textContent = `V ${chrome.runtime.getManifest().version}`;
 
 /**
@@ -36,18 +58,18 @@ function queryFormInfo() {
         return;
       }
 
-      updateFormId(response.formId || "Unknown");
+      updateFormId(response.formId || getMessage("unknown", "Unknown"));
     });
   });
 }
 
 formIdButton.addEventListener("click", () => {
   const formId = formIdValue.textContent;
-  if (!formId || formId === "---" || formId === "Copied") return;
+  if (!formId || formId === "---" || formIdButton.classList.contains("is-copied")) return;
 
   navigator.clipboard.writeText(formId).then(() => {
     const originalFormId = formId;
-    formIdValue.textContent = "Copied";
+    formIdValue.textContent = getMessage("copied", "Copied");
     formIdButton.classList.add("is-copied");
 
     setTimeout(() => {
@@ -56,7 +78,7 @@ formIdButton.addEventListener("click", () => {
     }, 1000);
   }).catch((error) => {
     console.error(
-      `%c${CONFIG.LOGGING.PREFIX}%c Form ID could not be copied. ${error.message || String(error)}`,
+      `%c${CONFIG.LOGGING.PREFIX}%c ${getMessage("formIdCopyError", "Form ID could not be copied.")} ${error.message || String(error)}`,
       CONFIG.LOGGING.PREFIX_STYLE,
       CONFIG.LOGGING.MESSAGE_STYLE
     );
@@ -67,7 +89,7 @@ extensionInfoButton.addEventListener("click", () => {
   chrome.tabs.create({ url: CONFIG.URLS.SUPPORT }, () => {
     if (chrome.runtime.lastError) {
       console.error(
-        `%c${CONFIG.LOGGING.PREFIX}%c Support page could not be opened. ${chrome.runtime.lastError.message}`,
+        `%c${CONFIG.LOGGING.PREFIX}%c ${getMessage("supportOpenError", "Support page could not be opened.")} ${chrome.runtime.lastError.message}`,
         CONFIG.LOGGING.PREFIX_STYLE,
         CONFIG.LOGGING.MESSAGE_STYLE
       );

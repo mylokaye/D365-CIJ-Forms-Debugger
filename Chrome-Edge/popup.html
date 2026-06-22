@@ -95,7 +95,7 @@
       background: var(--success-surface);
       border: 1px solid var(--success);
       border-radius: 11px;
-      font-size: 11px;
+      font-size: 9px;
       font-weight: 500;
       line-height: 1;
       white-space: nowrap;
@@ -136,7 +136,7 @@
       background: transparent;
       border: 0;
       border-radius: 5px;
-      font-size: 13px;
+      font-size: 12px;
       line-height: 1.35;
       text-align: left;
       cursor: pointer;
@@ -145,6 +145,7 @@
     .form-id-label {
       flex: 0 0 auto;
       color: #555555;
+      font-size: 11px;
       font-weight: 700;
     }
 
@@ -195,9 +196,9 @@
       <h1>Dynamics 365<br>Form Debugger</h1>
     </header>
 
-    <section class="details-panel" aria-label="Extension details">
+    <section class="details-panel" id="extension-details" aria-label="Extension details">
       <div class="panel-header">
-        <div class="cache-status" role="status">Cache disabled</div>
+        <div class="cache-status" id="cache-status" role="status">Cache disabled</div>
         <button class="info-button" id="extension-info" type="button" title="Open support" aria-label="Open extension support">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="9"></circle>
@@ -208,7 +209,7 @@
       </div>
 
       <button class="form-id" id="form-id" type="button" title="Copy Form ID">
-        <span class="form-id-label">Form ID:</span>
+        <span class="form-id-label" id="form-id-label">Form ID:</span>
         <span class="form-id-value" id="form-id-value" aria-live="polite">---</span>
       </button>
 

@@ -28,6 +28,7 @@ For local development:
 - **Dynamic form support** — Labels newly inserted hidden fields without creating duplicates.
 - **Compact popup** — Uses a 400 × 218px layout with the extension logo, cache status, Form ID, installed version, and support link.
 - **Consistent diagnostics** — Uses the **Dynamics 365 Form Debugger** console prefix with blue branding and clear black message text.
+- **Localized interface** — Supports the ten most-used web content languages through Chrome's native locale system.
 - **No runtime dependencies or telemetry** — Uses browser APIs and plain HTML, CSS, and JavaScript only.
 
 ## How It Works
@@ -67,6 +68,24 @@ The extension does not collect, store, or transmit form values, browsing history
 
 The extension does not request the `storage` permission.
 
+## Supported Languages
+
+The manifest and popup are localized for the ten most-used website content languages reported by [W3Techs on 22 June 2026](https://w3techs.com/technologies/overview/content_language):
+
+- English
+- Spanish
+- German
+- Japanese
+- French
+- Portuguese (Brazil and Portugal)
+- Russian
+- Italian
+- Dutch
+- Polish
+
+Chrome selects the closest supported locale from the browser UI language and falls back to English.
+Portuguese is packaged as both `pt_BR` and `pt_PT`; the ten languages therefore use eleven locale catalogs.
+
 ## Development
 
 The unpacked extension is loaded directly from `Chrome-Edge/`; there is no build step or package manager.
@@ -100,6 +119,7 @@ Behavior changes should also be tested by loading `Chrome-Edge/` as an unpacked 
 - Updated console branding to **Dynamics 365 Form Debugger**, with a blue plugin name and black diagnostic text.
 - Improved Chrome API error handling and centralized message types, selectors, URLs, and logging styles.
 - Updated privacy and permissions documentation to match current behavior.
+- Added native Chrome localization for English, Spanish, German, Japanese, French, Portuguese, Russian, Italian, Dutch, and Polish.
 
 ### [1.0.0] - 2025-01-XX
 

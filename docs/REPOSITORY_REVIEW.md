@@ -17,6 +17,7 @@ The extension keeps cache bypass active and automatically renders editable hidde
 │   ├── background.js
 │   ├── config.js
 │   ├── content-script.js
+│   ├── _locales/
 │   ├── icons/
 │   │   ├── icon16.png
 │   │   ├── icon48.png
@@ -41,6 +42,7 @@ The manifest and README use version `1.2.1`. The declared action icons are 16, 4
 
 - Manifest V3.
 - The `activeTab` permission.
+- English as the default locale, with ten supported languages across eleven packaged locale catalogs under `_locales/`.
 - `*://*.dynamics.com/*` host permission.
 - A classic background service worker at `background.js`.
 - A popup action at `popup.html`.
@@ -89,6 +91,7 @@ It does not transmit detected data. Detection can succeed when the popup asks la
 - Shows the Form ID, always-active cache-bypass status, and installed version in a compact branded panel.
 - Copies the Form ID to the clipboard.
 - Opens the support page from the popup information button.
+- Localizes visible popup text with `chrome.i18n.getMessage()` and displays the closest supported browser UI language.
 
 The information button opens the centralized `CONFIG.URLS.SUPPORT` destination at `mylokaye.info`.
 

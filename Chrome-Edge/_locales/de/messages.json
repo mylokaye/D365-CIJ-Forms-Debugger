@@ -1,0 +1,13 @@
+{
+  "extensionName": { "message": "Dynamics 365 Form Debugger" },
+  "extensionDescription": { "message": "Dynamics 365 Customer Insights - Journeys-Formulare debuggen: Cache umgehen und ausgeblendete Felder anzeigen." },
+  "extensionDetails": { "message": "Erweiterungsdetails" },
+  "cacheDisabled": { "message": "Cache deaktiviert" },
+  "formIdLabel": { "message": "Formular-ID:" },
+  "copyFormId": { "message": "Formular-ID kopieren" },
+  "copied": { "message": "Kopiert" },
+  "openSupport": { "message": "Support öffnen" },
+  "unknown": { "message": "Unbekannt" },
+  "formIdCopyError": { "message": "Die Formular-ID konnte nicht kopiert werden." },
+  "supportOpenError": { "message": "Die Supportseite konnte nicht geöffnet werden." }
+}

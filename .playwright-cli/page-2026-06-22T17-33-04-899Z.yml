@@ -1,0 +1,13 @@
+- main [ref=e2]:
+  - heading "Dynamics 365 Form Debugger" [level=1] [ref=e4]:
+    - text: Dynamics 365
+    - text: Form Debugger
+  - region "Extension details" [ref=e5]:
+    - generic [ref=e6]:
+      - status [ref=e7]: Cache disabled
+      - button "Open extension support" [ref=e8] [cursor=pointer]:
+        - img [ref=e9]
+    - 'button "Form ID: ---" [ref=e11] [cursor=pointer]':
+      - generic [ref=e12]: "Form ID:"
+      - generic [ref=e13]: "---"
+    - paragraph [ref=e14]: V ---

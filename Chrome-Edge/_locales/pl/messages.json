@@ -1,0 +1,13 @@
+{
+  "extensionName": { "message": "Dynamics 365 Form Debugger" },
+  "extensionDescription": { "message": "Debuguj formularze Dynamics 365 Customer Insights - Journeys, omijając pamięć podręczną i wyświetlając ukryte pola." },
+  "extensionDetails": { "message": "Szczegóły rozszerzenia" },
+  "cacheDisabled": { "message": "Cache wyłączony" },
+  "formIdLabel": { "message": "ID formularza:" },
+  "copyFormId": { "message": "Kopiuj ID formularza" },
+  "copied": { "message": "Skopiowano" },
+  "openSupport": { "message": "Otwórz pomoc" },
+  "unknown": { "message": "Nieznany" },
+  "formIdCopyError": { "message": "Nie udało się skopiować ID formularza." },
+  "supportOpenError": { "message": "Nie udało się otworzyć strony pomocy." }
+}

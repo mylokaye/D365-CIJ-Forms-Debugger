@@ -1,0 +1,13 @@
+{
+  "extensionName": { "message": "Dynamics 365 Form Debugger" },
+  "extensionDescription": { "message": "Отлаживайте формы Dynamics 365 Customer Insights - Journeys, обходя кэш и отображая скрытые поля." },
+  "extensionDetails": { "message": "Сведения о расширении" },
+  "cacheDisabled": { "message": "Кэш отключён" },
+  "formIdLabel": { "message": "ID формы:" },
+  "copyFormId": { "message": "Копировать ID формы" },
+  "copied": { "message": "Скопировано" },
+  "openSupport": { "message": "Открыть поддержку" },
+  "unknown": { "message": "Неизвестно" },
+  "formIdCopyError": { "message": "Не удалось скопировать ID формы." },
+  "supportOpenError": { "message": "Не удалось открыть страницу поддержки." }
+}

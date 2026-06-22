@@ -1,0 +1,13 @@
+{
+  "extensionName": { "message": "Dynamics 365 Form Debugger" },
+  "extensionDescription": { "message": "Debug Dynamics 365 Customer Insights - Journeys forms by bypassing cache and exposing hidden fields." },
+  "extensionDetails": { "message": "Extension details" },
+  "cacheDisabled": { "message": "Cache disabled" },
+  "formIdLabel": { "message": "Form ID:" },
+  "copyFormId": { "message": "Copy Form ID" },
+  "copied": { "message": "Copied" },
+  "openSupport": { "message": "Open support" },
+  "unknown": { "message": "Unknown" },
+  "formIdCopyError": { "message": "Form ID could not be copied." },
+  "supportOpenError": { "message": "Support page could not be opened." }
+}

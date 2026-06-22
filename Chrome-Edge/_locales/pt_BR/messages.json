@@ -1,0 +1,13 @@
+{
+  "extensionName": { "message": "Dynamics 365 Form Debugger" },
+  "extensionDescription": { "message": "Depure formulários do Dynamics 365 Customer Insights - Journeys ignorando o cache e exibindo campos ocultos." },
+  "extensionDetails": { "message": "Detalhes da extensão" },
+  "cacheDisabled": { "message": "Cache desativado" },
+  "formIdLabel": { "message": "ID do formulário:" },
+  "copyFormId": { "message": "Copiar ID do formulário" },
+  "copied": { "message": "Copiado" },
+  "openSupport": { "message": "Abrir suporte" },
+  "unknown": { "message": "Desconhecido" },
+  "formIdCopyError": { "message": "Não foi possível copiar o ID do formulário." },
+  "supportOpenError": { "message": "Não foi possível abrir a página de suporte." }
+}

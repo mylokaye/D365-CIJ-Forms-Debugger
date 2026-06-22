@@ -1,0 +1,13 @@
+{
+  "extensionName": { "message": "Dynamics 365 Form Debugger" },
+  "extensionDescription": { "message": "Esegui il debug dei moduli Dynamics 365 Customer Insights - Journeys ignorando la cache e mostrando i campi nascosti." },
+  "extensionDetails": { "message": "Dettagli estensione" },
+  "cacheDisabled": { "message": "Cache disattivata" },
+  "formIdLabel": { "message": "ID modulo:" },
+  "copyFormId": { "message": "Copia ID modulo" },
+  "copied": { "message": "Copiato" },
+  "openSupport": { "message": "Apri assistenza" },
+  "unknown": { "message": "Sconosciuto" },
+  "formIdCopyError": { "message": "Impossibile copiare l'ID del modulo." },
+  "supportOpenError": { "message": "Impossibile aprire la pagina di assistenza." }
+}

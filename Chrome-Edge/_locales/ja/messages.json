@@ -1,0 +1,13 @@
+{
+  "extensionName": { "message": "Dynamics 365 Form Debugger" },
+  "extensionDescription": { "message": "キャッシュを回避し、非表示フィールドを表示して Dynamics 365 Customer Insights - Journeys フォームをデバッグします。" },
+  "extensionDetails": { "message": "拡張機能の詳細" },
+  "cacheDisabled": { "message": "キャッシュ無効" },
+  "formIdLabel": { "message": "フォーム ID:" },
+  "copyFormId": { "message": "フォーム ID をコピー" },
+  "copied": { "message": "コピーしました" },
+  "openSupport": { "message": "サポートを開く" },
+  "unknown": { "message": "不明" },
+  "formIdCopyError": { "message": "フォーム ID をコピーできませんでした。" },
+  "supportOpenError": { "message": "サポートページを開けませんでした。" }
+}
