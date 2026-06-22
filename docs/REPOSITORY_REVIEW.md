@@ -31,7 +31,7 @@ The extension keeps cache bypass active and automatically renders editable hidde
 └── README.md
 ```
 
-The manifest uses version `1.0.1`; the README still says `1.0.0`. The declared action icons are 16, 48, and 128 pixels. The 300-pixel icon exists but is not referenced by the manifest.
+The manifest and README use version `1.2.1`. The declared action icons are 16, 48, and 128 pixels. The popup also uses the packaged 300-pixel icon for its centered brand mark.
 
 ## Architecture
 
@@ -50,7 +50,7 @@ Although `host_permissions` is limited to Dynamics domains, the `<all_urls>` con
 
 ### Shared Configuration
 
-`config.js` defines the global `CONFIG` object. It contains DOM IDs, timeouts, colors, logging strings, the Dynamics asset URL pattern, the no-cache hash, selectors, and message types.
+`config.js` defines the global `CONFIG` object. It contains DOM IDs, timeouts, logging styles, support URLs, the Dynamics asset URL pattern, the no-cache hash, selectors, and message types.
 
 Several values are remnants of a removed in-page overlay (`STYLE`, `OVERLAY`, `OVERLAY_Z_INDEX`, and related IDs). The CommonJS export branch is not used by the extension. Runtime message types are shared through `CONFIG.MESSAGE_TYPES`.
 
@@ -73,10 +73,9 @@ Tab-update callback errors are handled.
 - Observes resource performance entries containing `landingpageforms` and logs them.
 - Checks the first element matching `[data-form-id]` for Form ID metadata independently of field detection.
 - Reads `data-form-id`, `data-form-api-url`, and `data-cached-form-url` when present.
-- Collects form-related script URLs for diagnostic logging.
 - Counts descendant `input`, `select`, and `textarea` controls inside the Form ID container or a standalone `form.marketingForm`.
 - Attaches a `MutationObserver` to the field container after DOM readiness and observes nested control changes.
-- Responds to `GET_FORM_INFO` with separate Form ID and field detection states.
+- Responds to `GET_FORM_INFO` with the detected Form ID state.
 - Automatically renders editable, non-submitting visual copies of native hidden inputs and Dynamics form-designer hidden field blocks.
 - Synchronizes edits from those visual copies to source controls for the current page session.
 
@@ -91,17 +90,13 @@ It does not transmit detected data. Detection can succeed when the popup asks la
 - Copies the Form ID to the clipboard.
 - Opens the support page from the popup information button.
 
-The HTML link destinations point to `mylokaye.info`, but click handlers prevent those defaults and open different `pattens.tech` URLs. This should be aligned for accessibility, transparency, and behavior when JavaScript is unavailable.
+The information button opens the centralized `CONFIG.URLS.SUPPORT` destination at `mylokaye.info`.
 
 ## State Model Found
 
 The extension has no persisted state. The background worker always applies cache bypass to supported Dynamics asset URLs. Form names and values are not stored or transmitted by the extension. Editing a shown field updates its source control, which the host page may transmit through its normal form submission.
 
 ## Findings and Risks
-
-### High priority
-
-1. **Late-inserted forms are not mutation-monitored.** The observer attaches only if a field container exists at the single DOM-ready check. Popup-time rescanning finds later fields but does not establish ongoing monitoring.
 
 ### Medium priority
 
@@ -112,28 +107,22 @@ The extension has no persisted state. The background worker always applies cache
 
 ### Maintenance and documentation
 
-1. README version `1.0.0` differs from manifest version `1.0.1`.
-2. README describes `<all_urls>` as a permission while the manifest splits broad content-script matching from explicit permissions. The user-facing explanation should still clearly disclose broad site access.
-3. README documents that hidden-field values and edits remain page-local until normal form submission.
-4. README says there are no network calls. The extension does not send telemetry, but its support links intentionally navigate to external sites. Wording should distinguish extension-initiated data transmission from user navigation.
-6. Overlay-era constants and comments remain after overlay removal.
-7. The message listener returns `true` after responding synchronously.
-8. Some Chrome API error paths are missing, including tab query/create flows.
-9. Popup state is represented by direct inline style changes rather than state classes.
-10. There is no automated validation, test suite, linting, or release packaging script.
-11. `.gitignore` ignores common package-manager lockfiles. If Node tooling is introduced, its chosen lockfile should be committed for reproducibility.
+1. Overlay-era constants and comments remain after overlay removal.
+2. The field-count observer attaches only when a form container exists at its DOM-ready initialization; hidden-field rendering has its own document-level observer and does handle late insertion.
+3. There is no automated validation, test suite, linting, or release packaging script.
+4. `.gitignore` ignores common package-manager lockfiles. If Node tooling is introduced, its chosen lockfile should be committed for reproducibility.
 
 ## What Is Already Good
 
 - The codebase is small and approachable.
 - Manifest V3 is already in use.
-- Shared constants reduce duplicated storage keys, selectors, defaults, and URL patterns.
+- Shared constants reduce duplicated selectors, message types, URLs, logging styles, and URL patterns.
 - The service worker registers its listener at top level and does not depend on durable in-memory state.
 - The always-active design requires no persisted preference or storage permission.
 - The background worker avoids a tab update when the URL does not change.
 - The extension has no third-party runtime dependencies, remote code, analytics, or telemetry.
 - Popup scripts are external files, consistent with extension CSP requirements.
-- The primary storage and tab-update operations already check `chrome.runtime.lastError`.
+- Tab query, messaging, tab creation, clipboard, and tab-update failure paths are handled.
 - The content script uses `PerformanceObserver` rather than monkey-patching page network APIs.
 
 ## Recommended Development Order
@@ -142,8 +131,7 @@ The extension has no persisted state. The background worker always applies cache
 2. **Add minimal automated checks.** Start with manifest parsing, JavaScript syntax checks, URL/hash unit tests, and pure form-state helpers. Introduce tooling only after choosing it deliberately.
 3. **Harden dynamic detection.** Handle late iframe/container insertion and observer cleanup without continuous broad DOM scans.
 4. **Review permissions.** Verify current APIs and the narrowest workable access model against current Chrome documentation.
-5. **Refine the popup.** Separate unavailable/error/empty states and continue improving keyboard/status accessibility.
-6. **Align documentation and release data.** Update permissions, privacy language, version, changelog, and support links together.
+5. **Refine unavailable states.** Separate restricted-page, missing-receiver, and no-form states where the distinction helps users.
 
 ## Suggested Future Structure
 

@@ -1,126 +1,122 @@
 # Dynamics 365 Form Debugger
 
-Temporarily disables **Dynamics 365 Customer Insights Forms** cache, allowing you to test form changes quickly.
+A dependency-free Chrome and Microsoft Edge extension for debugging **Dynamics 365 Customer Insights - Journeys forms**.
 
-Test, debug, and validate **Dynamics 365 forms** directly in **Microsoft Edge / Chrome**.
-
----
+It automatically applies the `#d365mkt-nocache` cache-bypass hash on supported Dynamics asset URLs, identifies the active Form ID, and exposes hidden form fields for submission testing.
 
 ## Installation
 
 Install the extension from your browser's store:
 
-- **Chrome Web Store:** [Dynamics 365 Form Debugger](https://chromewebstore.google.com/detail/dynamics-365-form-debugge/kdhnliicfgopcijgepghgohnhafphohf?authuser=0&hl=en-GB)
+- **Chrome Web Store:** [Dynamics 365 Form Debugger](https://chromewebstore.google.com/detail/dynamics-365-form-debugge/kdhnliicfgopcijgepghgohnhafphohf)
 - **Microsoft Edge Add-ons:** [Dynamics 365 Form Debugger](https://microsoftedge.microsoft.com/addons/detail/dynamics-365-form-debugge/ceoaoafhphcpdokfdfkiilmndbepbbec)
 
-## Overview
+For local development:
 
-**Dynamics 365 Form Debugger** is a lightweight browser extension designed for Dynamics 365 Marketing users, developers, and CRM specialists.
-It helps you inspect form behavior, bypass cached data, and view form details with a simple popup interface.
+1. Open `chrome://extensions` or `edge://extensions`.
+2. Enable **Developer mode**.
+3. Select **Load unpacked**.
+4. Choose the repository's `Chrome-Edge/` directory.
 
-Everything runs **locally** — no data is collected, transmitted, or shared.
+## Features
 
----
+- **Automatic cache bypass** — Adds `#d365mkt-nocache` to supported `assets-*.mkt.dynamics.com` form URLs.
+- **Form ID detection** — Displays the detected Dynamics Form ID in the popup and copies it on click.
+- **Editable hidden fields** — Renders hidden fields in their original form layout with a green debug border.
+- **Complete Dynamics field support** — Handles native hidden inputs and designer-hidden `input`, `select`, and `textarea` controls.
+- **Submission testing** — Synchronizes edits to the original source controls and dispatches normal `input` and `change` events.
+- **Dynamic form support** — Labels newly inserted hidden fields without creating duplicates.
+- **Compact popup** — Uses a 400 × 218px layout with the extension logo, cache status, Form ID, installed version, and support link.
+- **Consistent diagnostics** — Uses the **Dynamics 365 Form Debugger** console prefix with blue branding and clear black message text.
+- **No runtime dependencies or telemetry** — Uses browser APIs and plain HTML, CSS, and JavaScript only.
 
-## Key Features
+## How It Works
 
-- ✅ **Instant form detection** - Automatically detects Dynamics 365 forms on the page
-- 📋 **View form details** - See the detected Dynamics Form ID
-- 🔄 **Automatic cache bypass** using `#d365mkt-nocache`
-- ⚡ **Always active** - Cache bypass is applied automatically on supported Dynamics form URLs
-- 📋 **Click to copy** - Click any form detail to copy it to clipboard
-- 👁️ **Editable hidden fields** - Automatically render editable copies of native hidden inputs and fields hidden in the Dynamics form designer, highlighted with a green border
-- 🎨 **Clean popup** - Compact cache status, Form ID, version, and support access
-- 🔒 **100% client-side debugging** — no tracking, telemetry, or form-data transmission
+1. Open a supported Dynamics standalone form or a page containing an embedded Dynamics form.
+2. The extension detects the form and automatically displays editable copies of its hidden fields.
+3. Hidden-field copies use the form's existing styles and a green border so they are easy to distinguish.
+4. Editing a displayed copy updates the corresponding original control used by the form submission.
+5. On supported Dynamics asset pages, cache bypass is applied automatically.
+6. Open the extension popup to view or copy the Form ID, confirm cache status, view the installed version, or open support.
 
+Reload the extension and refresh existing form tabs after installing a local update so the latest content script is injected.
 
----
+## Hidden-Field Editing
 
-## How to Use
+The rendered controls are debug copies. Their `id`, `name`, `required`, `form`, and list bindings are removed so the copies cannot submit duplicate values.
 
-1. Install the extension from the links above.
-2. Open a Dynamics 365 form page, such as: `https://assets-*.mkt.dynamics.com/...`
-3. Click the **Dynamics 365 Form Debugger** icon in your browser toolbar.
-4. Cache bypass is applied automatically; no activation step is required.
-5. View the Form ID, cache status, and installed extension version.
-6. Click any value to copy it to your clipboard.
-7. Hidden fields are displayed automatically in the form's existing visual style and can be edited directly.
+When you edit a debug copy, the extension updates the original hidden control and dispatches the same `input` or `change` event. If you then submit the form, the website receives the edited value through its normal submission process.
 
-All operations happen locally inside your browser session.
-
----
+Turning a native `input[type="hidden"]` into a visible debug control affects only the copy; the original input remains hidden.
 
 ## Privacy & Data
 
-This extension **does not** collect, transmit, or store any user or form data. Hidden field values and edits remain in the current page and are not sent to the popup or written to storage.
-The extension makes no telemetry or form-data requests. The support button opens an external website only when you select it.
-If you submit a form after editing a shown hidden field, the website receives the edited value through its normal form-submission process.
+The extension does not collect, store, or transmit form values, browsing history, credentials, or telemetry.
 
-**Permissions Used:**
-- `activeTab` - To read form information from the current active tab
-- `<all_urls>` - Required because Dynamics 365 forms can be embedded on any website, not just Microsoft domains. The extension only activates when it detects a Dynamics 365 form on the page.
+- Form IDs are read from the current page and shown only in the popup.
+- Hidden-field values and edits remain in the current page session.
+- Edited values may be transmitted by the host website only when you submit its form.
+- The extension does not persist preferences or form data.
+- Selecting the popup's information button opens the external [support website](https://mylokaye.info).
 
----
+## Permissions and Site Access
 
-# Changelog
+- **`activeTab`** — Allows the popup to request the detected Form ID from the current tab.
+- **`*://*.dynamics.com/*` host access** — Allows the service worker to apply cache bypass on supported Dynamics asset URLs.
+- **`<all_urls>` content-script access** — Allows detection when Dynamics forms are embedded on third-party websites. The content script limits field inspection to detected Dynamics form containers.
 
-## Unreleased
+The extension does not request the `storage` permission.
 
-- Standardized console messages under the **Dynamics 365 Form Debugger** name with consistent blue styling and clearer diagnostics.
-- Redesigned the popup with centered branding and a compact status panel.
-- Hidden fields are always displayed as editable visual copies with green borders and update source controls for form-submission testing.
-- Removed the activation toggle and auto-disable state.
-- Cache bypass is now always active on supported Dynamics form URLs.
-- Removed the `storage` permission because hidden-field display is always active.
-- Split Form ID detection from field detection so either check can succeed independently.
-- Field count now includes `input`, `select`, and `textarea` controls while excluding action buttons.
+## Development
 
-## [1.0.0] - 2025-01-XX
+The unpacked extension is loaded directly from `Chrome-Edge/`; there is no build step or package manager.
 
-### Features
-- ✅ Form detection via `[data-form-id]` attribute for Dynamics 365 forms
-- 📊 Display Form ID and field count (including hidden fields)
-- 🎯 Click-to-copy functionality for form details
-- 🔄 Cache bypass via `#d365mkt-nocache` URL hash
-- ⚙️ Extension on/off toggle with visual feedback
-- ⚡ Smart auto-disable: Extension automatically toggles off when no form is detected
-- 🎨 Visual feedback: Info fields turn grey when extension is inactive
-- 📡 Performance API monitoring to detect form API calls
-- 🔍 Mutation observer to track dynamically loaded form fields
-- 📝 Comprehensive console logging with color-coded output
+Minimum static validation:
 
-### UI/UX
-- Modern popup interface (350px × 400px)
-- Status indicators: Form detected (green/red), Cache status (green/red)
-- Clean card-based layout with proper spacing
-- Interactive elements with hover effects
-- Greyed-out info cards when extension is disabled or no form detected
-- Auto-disable functionality for better user experience
-- Footer links for feedback and support
+```sh
+node -e 'JSON.parse(require("fs").readFileSync("Chrome-Edge/manifest.json", "utf8"))'
+node --check Chrome-Edge/config.js
+node --check Chrome-Edge/background.js
+node --check Chrome-Edge/content-script.js
+node --check Chrome-Edge/popup.js
+```
 
-### Technical Details
-- Manifest V3 compliant
-- Works on any URL where Dynamics 365 forms are embedded
-- CSP-compliant implementation (no eval, no inline scripts)
-- Content script runs at `document_start` for early detection
-- Real-time field count updates via MutationObserver
-- Dynamic UI state management based on form detection
-- Auto-disable logic prevents unnecessary cache bypass on non-form pages
-- Only activates when Dynamics 365 form is detected via `[data-form-id]` attribute
+Behavior changes should also be tested by loading `Chrome-Edge/` as an unpacked extension and exercising standalone, embedded, dynamically inserted, normal, and restricted pages.
+
+## Changelog
+
+### [1.2.1] - 2026-06-22
+
+- Added automatic editable rendering for native and Dynamics designer-hidden fields.
+- Added support for hidden text inputs, option sets, lookup controls, and textareas using their user-facing labels.
+- Preserved the original form layout and styling while adding green debug borders.
+- Synchronized debug edits to original submitted controls through `input` and `change` events.
+- Added dynamic hidden-field refresh and duplicate-label prevention.
+- Kept cache bypass always active on supported Dynamics asset URLs.
+- Removed activation, cache, hidden-field display, and edit toggles.
+- Removed persisted state and the `storage` permission.
+- Redesigned the popup to a compact 400 × 218px layout with centered branding, cache status, Form ID, runtime version, and support access.
+- Removed the popup field-count and separate form-detection status rows.
+- Updated console branding to **Dynamics 365 Form Debugger**, with a blue plugin name and black diagnostic text.
+- Improved Chrome API error handling and centralized message types, selectors, URLs, and logging styles.
+- Updated privacy and permissions documentation to match current behavior.
+
+### [1.0.0] - 2025-01-XX
+
+- Added Dynamics Form ID and field-count detection.
+- Added click-to-copy form details.
+- Added cache bypass using `#d365mkt-nocache`.
+- Added the original activation toggle, popup status indicators, resource observation, and mutation monitoring.
+- Shipped as a dependency-free Manifest V3 extension for Chrome and Edge.
+
+## Support
+
+Visit [mylokaye.info](https://mylokaye.info) for support and feedback.
 
 ## Legal Notice
 
-**Dynamics 365** and **Microsoft Edge** are registered trademarks of **Microsoft Corporation**.
-This extension, **Dynamics 365 Form Debugger**, is an **independent tool** created by **Mylo Kaye** and is **not affiliated with, endorsed by, or sponsored by Microsoft Corporation** in any way.
-All references to Microsoft products are used for informational and compatibility purposes only.
+**Dynamics 365** and **Microsoft Edge** are registered trademarks of **Microsoft Corporation**. Dynamics 365 Form Debugger is an independent tool created by **Mylo Kaye** and is not affiliated with, endorsed by, or sponsored by Microsoft Corporation.
 
----
-
-## Support & Feedback
-
-
----
-
-**Author:** Mylo Kaye
-**License:** Apache 2.0
-**Version:** 1.0.0
+- **Author:** Mylo Kaye
+- **License:** Apache 2.0
+- **Version:** 1.2.1
